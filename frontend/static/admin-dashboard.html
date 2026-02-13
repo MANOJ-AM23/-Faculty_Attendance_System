@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>Admin — Faculty Attendance</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>tailwind.config = {theme:{extend:{colors:{primary:'#0f172a',accent:'#06b6d4',muted:'#6b7280'}}}};</script>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+        <style>body{font-family:Inter,system-ui,Segoe UI,Roboto}</style>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body class="min-h-screen bg-slate-50">
+        <div class="flex">
+            <!-- Sidebar -->
+            <aside id="sidebar" class="w-64 bg-white h-screen shadow-lg">
+                <div class="p-6 border-b">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 11c2.21 0 4-1.79 4-4S14.21 3 12 3 8 4.79 8 7s1.79 4 4 4zM6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>
+                        </div>
+                        <div>
+                            <div class="text-lg font-semibold">University</div>
+                            <div class="text-xs text-muted">Attendance</div>
+                        </div>
+                    </div>
+                </div>
+
+                <nav class="p-4 space-y-1 text-sm">
+                    <a href="#" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100"><svg class="w-5 h-5 text-muted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M3 6h18M3 18h18"/></svg> Dashboard</a>
+                    <a href="#manage" onclick="scrollToSection('manage')" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100">Manage Faculty</a>
+                    <a href="#attendance" onclick="scrollToSection('attendance')" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100">Attendance Reports</a>
+                    <a href="#leaves" onclick="scrollToSection('leaves')" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100">Leave Requests</a>
+                    <a href="/logout" class="flex items-center gap-3 p-3 rounded-lg text-red-600 hover:bg-red-50">Logout</a>
+                </nav>
+            </aside>
+
+            <div class="flex-1 p-6">
+                <header class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-6">
+                        <button class="md:hidden p-2" onclick="toggleSidebar()">☰</button>
+                        <div class="grid grid-cols-4 gap-4">
+                            <div class="bg-white p-4 rounded-lg shadow-sm">
+                                <div class="text-sm text-muted">Total Faculty</div>
+                                <div id="totalFaculty" class="text-xl font-semibold">—</div>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg shadow-sm">
+                                <div class="text-sm text-muted">Today Present</div>
+                                <div id="todayPresent" class="text-xl font-semibold text-green-600">—</div>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg shadow-sm">
+                                <div class="text-sm text-muted">Today Absent</div>
+                                <div id="todayAbsent" class="text-xl font-semibold text-rose-500">—</div>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg shadow-sm">
+                                <div class="text-sm text-muted">Pending Leaves</div>
+                                <div id="pendingLeaves" class="text-xl font-semibold text-amber-500">—</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                        <div class="text-sm text-muted">Admin</div>
+                        <div class="w-10 h-10 rounded-full bg-slate-200"></div>
+                    </div>
+                </header>
+
+                <section id="manage" class="mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold">Manage Faculty</h2>
+                        <div class="flex items-center gap-2">
+                            <input oninput="filterTable('facTable', this.value)" placeholder="Search faculty..." class="px-3 py-2 rounded-lg border" />
+                            <button class="px-3 py-2 bg-primary text-white rounded-lg" onclick="loadFaculty()">Refresh</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                        <table id="facTable" class="min-w-full">
+                            <thead class="bg-slate-50">
+                                <tr class="text-left text-sm text-muted">
+                                    <th class="p-3">ID</th><th class="p-3">Name</th><th class="p-3">Dept</th><th class="p-3">Role</th><th class="p-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm" style="counter-reset:rowNum;"> </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="attendance" class="mb-6">
+                    <h2 class="text-lg font-semibold mb-3">Attendance by Date</h2>
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                        <div class="flex gap-3 items-center mb-3">
+                            <input id="attDate" type="date" class="px-3 py-2 border rounded-lg" />
+                            <button class="px-3 py-2 bg-primary text-white rounded-lg" onclick="loadAttendanceByDate()">View</button>
+                        </div>
+                        <div class="overflow-auto">
+                            <table id="attDateTable" class="min-w-full text-sm">
+                                <thead class="bg-slate-50">
+                                    <tr><th class="p-3">Faculty</th><th class="p-3">Date</th><th class="p-3">Login</th><th class="p-3">Status</th></tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="leaves" class="mb-6">
+                    <h2 class="text-lg font-semibold mb-3">Pending Leave Requests</h2>
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                        <div class="overflow-auto">
+                            <table id="leaveAdminTable" class="min-w-full text-sm">
+                                <thead class="bg-slate-50"><tr><th class="p-3">ID</th><th class="p-3">Faculty</th><th class="p-3">From</th><th class="p-3">To</th><th class="p-3">Reason</th><th class="p-3">Status</th><th class="p-3">Actions</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Modal placeholder -->
+        <div id="confirmModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center">
+            <div class="bg-white rounded-lg p-6 w-96">
+                <h3 class="text-lg font-semibold">Confirm action</h3>
+                <p class="text-sm text-muted mt-2">Are you sure?</p>
+                <div class="mt-4 flex justify-end gap-2"><button class="px-3 py-2 rounded-lg border" onclick="closeModal()">Cancel</button><button id="confirmBtn" class="px-3 py-2 rounded-lg bg-rose-500 text-white">Confirm</button></div>
+            </div>
+        </div>
+
+        <script src="/js/ui.js"></script>
+        <script>
+            // populate stats & initial tables
+            function renderBadge(status){ if(status==='APPROVED') return `<span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">Approved</span>`; if(status==='PENDING') return `<span class="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-700">Pending</span>`; return `<span class="px-2 py-1 rounded-full text-xs bg-rose-100 text-rose-700">Rejected</span>`; }
+
+            function loadFaculty(){ fetch('/api/admin/faculty').then(r=>r.json()).then(data=>{
+                document.getElementById('totalFaculty').innerText = data.length;
+                const tbody = document.querySelector('#facTable tbody'); tbody.innerHTML='';
+                data.forEach(f=>{ const tr=document.createElement('tr'); tr.className='hover:bg-slate-50'; tr.innerHTML=`<td class="p-3">${f.id}</td><td class="p-3">${f.name}</td><td class="p-3">${f.department}</td><td class="p-3">${f.role}</td><td class="p-3"><button class='px-2 py-1 text-sm rounded bg-indigo-100 text-indigo-700' onclick="editFaculty(${f.id},'${f.name}','${f.department}','${f.username}','${f.role}')">Edit</button> <button class='px-2 py-1 text-sm rounded bg-rose-100 text-rose-700' onclick="confirmDelete(${f.id})">Delete</button></td>`; tbody.appendChild(tr); }); }); }
+
+            function loadPendingLeaves(){ fetch('/api/admin/leave/pending').then(r=>r.json()).then(data=>{ document.getElementById('pendingLeaves').innerText=data.length; const tbody=document.querySelector('#leaveAdminTable tbody'); tbody.innerHTML=''; data.forEach(l=>{ const tr=document.createElement('tr'); tr.className='hover:bg-slate-50'; tr.innerHTML=`<td class='p-3'>${l.id}</td><td class='p-3'>${l.faculty.name}</td><td class='p-3'>${l.fromDate}</td><td class='p-3'>${l.toDate}</td><td class='p-3'>${l.reason}</td><td class='p-3'>${renderBadge(l.status)}</td><td class='p-3'><button class='px-2 py-1 rounded bg-green-100 text-green-700' onclick='approveLeave(${l.id})'>Approve</button> <button class='px-2 py-1 rounded bg-rose-100 text-rose-700' onclick='rejectLeave(${l.id})'>Reject</button></td>`; tbody.appendChild(tr); }); }); }
+
+            function loadAttendanceByDate(){ const d=document.getElementById('attDate').value; if(!d) return; fetch('/api/admin/attendance/date?date='+d).then(r=>r.json()).then(data=>{ const tbody=document.querySelector('#attDateTable tbody'); tbody.innerHTML=''; data.forEach(a=>{ const tr=document.createElement('tr'); tr.className='hover:bg-slate-50'; tr.innerHTML=`<td class='p-3'>${a.faculty.name}</td><td class='p-3'>${a.date}</td><td class='p-3'>${a.loginTime||''}</td><td class='p-3'>${a.status}</td>`; tbody.appendChild(tr); }); }); }
+
+            function confirmDelete(id){ openModal(()=>{ fetch('/api/admin/faculty/'+id,{method:'DELETE'}).then(()=>{ closeModal(); loadFaculty(); showToast('Deleted'); }); }); }
+
+            // initial
+            loadFaculty(); loadPendingLeaves();
+        </script>
+    </body>
+</html>

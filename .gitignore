@@ -1,0 +1,17 @@
+# Build outputs
+/target/
+
+# Local JDK and tools
+/corretto/
+/apache-maven/
+
+# IDE files
+.idea/
+.vscode/
+
+# Archives
+*.zip
+*.tar.gz
+
+# Logs
+*.log
