@@ -1,0 +1,31 @@
+{
+  "name": "attendence",
+  "version": "1.0.0",
+  "description": "- **Frontend**: HTML, CSS, JavaScript (static pages)\r - **Backend**: Java 17, Spring Boot (Web, Security, Data JPA)\r - **Database**: MySQL\r - **Architecture**: Three-tier (Controller → Service → Repository/DB)",
+  "main": "index.js",
+  "scripts": {
+    "build:css": "tailwindcss -i ./css/input.css -o ./css/styles.css",
+    "watch:css": "tailwindcss -i ./css/input.css -o ./css/styles.css --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MANOJ-AM23/Attendence_tracking.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MANOJ-AM23/Attendence_tracking/issues"
+  },
+  "homepage": "https://github.com/MANOJ-AM23/Attendence_tracking#readme",
+  "devDependencies": {
+    "autoprefixer": "^10.4.24",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4"
+  }
+}

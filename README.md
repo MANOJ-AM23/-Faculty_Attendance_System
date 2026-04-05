@@ -55,9 +55,6 @@ Edit `src/main/resources/application.properties` and set:
    - `mvn clean package`
 4. Run:
    - `mvn spring-boot:run`
-5. Open browser:
-   - `http://localhost:8080/login.html`
-
 ### 5. Default Usage Flow
 - Insert an admin row directly in DB (example):
 

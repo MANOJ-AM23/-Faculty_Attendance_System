@@ -1,0 +1,1162 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>School Faculty Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { theme: { extend: { colors: { primary: '#172554', accent: '#14b8a6' } } } };</script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Inter, system-ui, Segoe UI, Roboto
+        }
+
+        @keyframes scan {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(296px);
+            }
+        }
+
+        .animate-bounce-slow {
+            animation: scan 2s linear infinite;
+        }
+    </style>
+    <script src="/js/html5-qrcode-local.js"></script>
+</head>
+
+<body class="min-h-screen bg-slate-50 flex overflow-hidden">
+    <aside id="sidebar"
+        class="w-64 bg-white h-screen shadow-lg flex-shrink-0 flex flex-col z-50 fixed lg:relative transition-transform duration-300 -translate-x-full lg:translate-x-0">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="/assets/school-logo.jpg" alt="School Logo" onerror="this.style.display='none'"
+                    class="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm" />
+                <div>
+                    <div class="text-lg font-bold text-slate-800 tracking-tight">School Faculty</div>
+                    <div class="text-xs font-medium text-slate-500">Attendance Portal</div>
+                </div>
+            </div>
+            <!-- Close button for mobile -->
+            <button onclick="toggleSidebar()" class="lg:hidden text-slate-500 hover:text-rose-500 transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+        <nav class="flex-1 p-4 space-y-1 overflow-y-auto text-sm font-semibold">
+            <a href="#dashboard" onclick="showSection('dashboard')"
+                class="nav-link flex items-center p-3 rounded-lg text-slate-700 hover:bg-slate-100 transition bg-slate-100"><i
+                    class="fa-solid fa-table-columns w-6 text-center text-lg mr-2"></i> Dashboard</a>
+            <a href="#daily" onclick="showSection('daily')"
+                class="nav-link flex items-center p-3 rounded-lg text-slate-600 hover:bg-slate-100 transition"><i
+                    class="fa-solid fa-calendar-day w-6 text-center text-lg mr-2"></i> Daily</a>
+            <a href="#monthly" onclick="showSection('monthly')"
+                class="nav-link flex items-center p-3 rounded-lg text-slate-600 hover:bg-slate-100 transition"><i
+                    class="fa-solid fa-calendar-days w-6 text-center text-lg mr-2"></i> Monthly</a>
+            <a href="#leave" onclick="showSection('leave')"
+                class="nav-link flex items-center p-3 rounded-lg text-slate-600 hover:bg-slate-100 transition"><i
+                    class="fa-solid fa-envelope-open-text w-6 text-center text-lg mr-2"></i> Apply Leave</a>
+            <a href="#my-leaves" onclick="showSection('my-leaves')"
+                class="nav-link flex items-center p-3 rounded-lg text-slate-600 hover:bg-slate-100 transition"><i
+                    class="fa-solid fa-list-check w-6 text-center text-lg mr-2"></i> My Leaves</a>
+            <a href="#qr-scan" onclick="showSection('qr-scan')"
+                class="nav-link flex items-center p-3 rounded-lg text-slate-600 hover:bg-slate-100 transition"><i
+                    class="fa-solid fa-qrcode w-6 text-center text-lg mr-2"></i> QR Attendance</a>
+            <a href="#settings" onclick="showSection('settings')"
+                class="nav-link flex items-center p-3 rounded-lg text-slate-600 hover:bg-slate-100 transition"><i
+                    class="fa-solid fa-gear w-6 text-center text-lg mr-2"></i> Settings</a>
+        </nav>
+        <div class="p-4 border-t border-slate-100 hidden">
+        </div>
+    </aside>
+
+    <!-- Sidebar Overlay for mobile -->
+    <div id="sidebarOverlay" onclick="toggleSidebar()"
+        class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden lg:hidden"></div>
+
+    <main class="flex-1 overflow-y-auto h-screen relative bg-slate-50/50 p-4 md:p-10">
+        <header class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSidebar()"
+                    class="lg:hidden text-slate-500 hover:text-primary transition text-xl w-10 h-10 flex items-center justify-center rounded-lg bg-white border border-slate-200 shadow-sm">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Faculty Portal</div>
+            </div>
+            <div class="flex items-center gap-3 md:gap-4">
+                <div class="hidden sm:block text-sm font-bold text-slate-500">Welcome, <span
+                        id="welcomeName">Faculty</span></div>
+                <div id="welcomeInitial"
+                    class="w-10 h-10 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold shadow-sm">
+                    F
+                </div>
+            </div>
+        </header>
+
+        <!-- Container for Dashboard Stats/Info -->
+        <section id="dashboard" class="section-container block space-y-6 animate-fade-in mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- FACULTY INFORMATION -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 relative">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Faculty Information</h4>
+                    <div class="flex items-start gap-5">
+                        <div
+                            class="w-20 h-20 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center text-4xl shadow-inner border border-indigo-100 flex-shrink-0">
+                            <i class="fa-solid fa-user-tie"></i>
+                        </div>
+                        <div class="space-y-2.5 flex-1 text-sm">
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="font-bold text-slate-500">Name</div>
+                                <div id="profileName" class="col-span-2 text-slate-800 font-bold">: Dr. R. Kumar</div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="font-bold text-slate-500">Department</div>
+                                <div id="profileDept" class="col-span-2 text-slate-800 font-bold">: Computer Science
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="font-bold text-slate-500">Phone</div>
+                                <div class="col-span-2 text-slate-800 font-bold">: N/A</div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="font-bold text-slate-500">Email</div>
+                                <div id="profileEmail" class="col-span-2 text-slate-800 font-bold">: rkumar@school.edu
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="font-bold text-slate-500">Faculty ID</div>
+                                <div id="profileId" class="col-span-2 text-slate-800 font-bold">: FAC102</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-5 border-t border-slate-100">
+                        <button
+                            class="px-5 py-2 border border-slate-200 text-slate-600 font-bold text-xs rounded-lg hover:bg-slate-50 transition shadow-sm bg-white"><i
+                                class="fa-solid fa-pen mr-2"></i>Edit Profile</button>
+                    </div>
+                </div>
+
+                <!-- ATTENDANCE SUMMARY -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Attendance Summary
+                        </h4>
+                        <div class="space-y-3.5 text-sm">
+                            <div class="flex justify-between items-center py-1">
+                                <span class="font-bold text-slate-500">Working Days <span
+                                        class="text-slate-300 font-normal mx-2">-</span></span>
+                                <span id="totalWorking" class="text-slate-800 font-black">22</span>
+                            </div>
+                            <div class="flex justify-between items-center py-1">
+                                <span class="font-bold text-slate-500">Present Days <span
+                                        class="text-slate-300 font-normal mx-2">-</span></span>
+                                <span id="presentDays" class="text-slate-800 font-black text-emerald-600">18</span>
+                            </div>
+                            <div class="flex justify-between items-center py-1">
+                                <span class="font-bold text-slate-500">Leaves Used <span
+                                        class="text-slate-300 font-normal mx-2">-</span></span>
+                                <span id="leaveCount" class="text-slate-800 font-black text-amber-500">2.0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-5 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <div class="flex justify-between items-center mb-1.5">
+                            <span class="text-xs font-bold text-slate-500">Total Leaves:</span>
+                            <span class="font-black text-slate-800 text-sm">12</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-slate-500">Remaining:</span>
+                            <span class="font-black text-emerald-600 text-sm">10</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TODAY'S ATTENDANCE -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <h4
+                    class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">
+                    Today's Attendance</h4>
+
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                    <div class="space-y-2">
+                        <div class="text-sm font-bold text-slate-500 mb-1">Date: <span id="todayDate"
+                                class="text-slate-800 ml-2">-</span></div>
+                        <div class="flex items-center text-sm font-bold text-slate-500">
+                            Status: <span id="todayStatus"
+                                class="flex items-center gap-2 ml-3 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+                                <span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+                                <span class="text-slate-500 tracking-wide text-xs">NOT MARKED</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div
+                            class="bg-slate-50 px-6 py-3 rounded-xl border border-slate-100 flex flex-col items-center justify-center min-w[140px]">
+                            <span class="text-xs font-bold text-slate-400 mb-1">Check-in</span>
+                            <span id="todayCheckIn" class="font-mono font-black text-slate-400 text-lg">--:--</span>
+                        </div>
+                        <div
+                            class="bg-slate-50 px-6 py-3 rounded-xl border border-slate-100 flex flex-col items-center justify-center min-w[140px]">
+                            <span class="text-xs font-bold text-slate-400 mb-1">Check-out</span>
+                            <span id="todayCheckOut" class="font-mono font-black text-slate-400 text-lg">--:--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            </div>
+
+            <!-- MONTHLY ATTENDANCE PROGRESS -->
+            <div
+                class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Monthly Attendance
+                        Progress (Current Month)</h4>
+                    <div class="flex items-center gap-6">
+                        <div
+                            class="w-16 h-16 rounded-full border-4 border-slate-100 border-t-emerald-500 border-r-emerald-500 flex items-center justify-center font-black text-lg text-slate-800 shadow-sm">
+                            81%
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-5 text-xs font-bold text-slate-500">
+                                <div class="flex items-center gap-2"><span
+                                        class="w-3 h-3 rounded bg-emerald-400"></span> Present</div>
+                                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-rose-400"></span>
+                                    Absent</div>
+                                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-amber-400"></span>
+                                    Leave</div>
+                            </div>
+                            <div class="text-sm font-bold text-slate-800">
+                                Attendance Percentage: <span class="text-emerald-600 ml-1">81%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Container for Daily Attendance -->
+        <section id="daily" class="section-container hidden animate-fade-in mb-6 space-y-6">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold text-slate-800">Daily Attendance</h3>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-100 flex flex-col">
+                <!-- Row 1: Date | Day | Current Time -->
+                <div
+                    class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-dashed border-slate-200">
+                    <div class="flex items-center gap-8">
+                        <div>
+                            <span
+                                class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Date</span>
+                            <span id="dailyDateSpan" class="text-slate-800 font-bold">-</span>
+                        </div>
+                        <div>
+                            <span
+                                class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Day</span>
+                            <span id="dailyDaySpan" class="text-slate-800 font-bold">-</span>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Current
+                            Time</span>
+                        <span class="text-slate-800 font-black font-mono text-lg">09:12:30 AM</span>
+                    </div>
+                </div>
+
+                <!-- Row 2: Status & Working Hours -->
+                <div class="px-6 py-5 border-b border-dashed border-slate-200 space-y-3">
+                    <div class="flex items-center">
+                        <span class="text-sm font-bold text-slate-500 w-32">Status:</span>
+                        <span id="dailyStatus"
+                            class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 uppercase">
+                            <span class="text-slate-500 tracking-wide font-black text-xs">NOT MARKED</span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+                        </span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-sm font-bold text-slate-500 w-32">Working Hours:</span>
+                        <span class="text-slate-800 font-bold font-mono">09:00 - 04:30</span>
+                    </div>
+                </div>
+
+                <!-- Row 3: Check-in / out stats -->
+                <div
+                    class="px-6 py-5 flex flex-col md:flex-row md:items-center gap-8 border-b border-dashed border-slate-200">
+                    <div class="flex items-center">
+                        <span class="text-sm font-bold text-slate-500 w-24">Check-in:</span>
+                        <span id="dailyCheckIn" class="font-mono font-black text-slate-400 text-lg">--:--</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-sm font-bold text-slate-500 w-24">Check-out:</span>
+                        <span id="dailyCheckOut" class="font-mono font-black text-slate-400 text-lg">--:--</span>
+                    </div>
+                </div>
+
+                <!-- Row 4: Buttons -->
+                <div class="px-6 py-5 flex gap-4 border-b border-dashed border-slate-200">
+                    <button id="checkInBtn" onclick="markAttendance()"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-lg transition shadow-sm flex items-center gap-2 disabled:opacity-50">
+                        <i class="fa-solid fa-circle text-[10px]"></i> Check-in
+                    </button>
+                    <button id="checkOutBtn" onclick="markAttendance()"
+                        class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-6 rounded-lg transition shadow-sm flex items-center gap-2 disabled:opacity-50">
+                        <i class="fa-solid fa-square text-[12px]"></i> Check-out
+                    </button>
+                </div>
+
+                <!-- Row 5: Timeline -->
+                <div class="px-6 py-5">
+                    <h4
+                        class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-50 pb-2">
+                        Attendance Timeline</h4>
+                    <div id="attendanceTimeline" class="space-y-4">
+                        <!-- Dynamic timeline items -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="monthly" class="section-container hidden mb-8 space-y-6 animate-fade-in">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold text-slate-800">Monthly Attendance</h3>
+            </div>
+
+            <!-- 1. Filters -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center gap-4">
+                <div>
+                    <select id="monthYear"
+                        class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent outline-none">
+                        <option value="2026">2026</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                    </select>
+                </div>
+                <div>
+                    <select id="monthMonth"
+                        class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent outline-none">
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option selected value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+                <button
+                    class="px-6 py-2 bg-slate-800 text-white text-sm font-bold rounded-lg hover:bg-slate-700 transition shadow-sm"
+                    onclick="loadMonthly()">View</button>
+            </div>
+
+            <!-- 2. Summary Cards -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <h4 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Summary Cards</h4>
+                <div class="grid grid-cols-3 gap-6">
+                    <div class="border border-slate-100 rounded-lg p-4 text-center bg-slate-50/50">
+                        <div class="text-sm font-medium text-slate-500 mb-1">Working Days</div>
+                        <div class="text-3xl font-black text-slate-800" id="monthWorking">22</div>
+                    </div>
+                    <div class="border border-emerald-100 rounded-lg p-4 text-center bg-emerald-50/50">
+                        <div class="text-sm font-medium text-emerald-600 mb-1">Present</div>
+                        <div class="text-3xl font-black text-emerald-600" id="monthPresent">18</div>
+                    </div>
+                    <div class="border border-rose-100 rounded-lg p-4 text-center bg-rose-50/50">
+                        <div class="text-sm font-medium text-rose-600 mb-1">Absent</div>
+                        <div class="text-3xl font-black text-rose-600" id="monthAbsent">4</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Attendance Graph -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <h4 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Attendance Graph</h4>
+                <div class="w-full h-64 relative border border-slate-100 rounded-lg p-4 bg-slate-50/50">
+                    <canvas id="monthlyChart"></canvas>
+                    <div id="percentage"
+                        class="absolute top-4 right-4 text-sm font-bold text-slate-500 bg-white px-3 py-1 rounded shadow-sm border border-slate-100">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Calendar View -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Calendar View</h4>
+                    <div class="flex items-center gap-4 text-xs font-bold text-slate-600">
+                        <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-emerald-400"></span>
+                            Present</div>
+                        <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-rose-400"></span>
+                            Absent</div>
+                        <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-amber-400"></span>
+                            Leave</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-7 gap-2">
+                    <div class="text-center text-xs font-bold text-slate-400 mb-2">Sun</div>
+                    <div class="text-center text-xs font-bold text-slate-400 mb-2">Mon</div>
+                    <div class="text-center text-xs font-bold text-slate-400 mb-2">Tue</div>
+                    <div class="text-center text-xs font-bold text-slate-400 mb-2">Wed</div>
+                    <div class="text-center text-xs font-bold text-slate-400 mb-2">Thu</div>
+                    <div class="text-center text-xs font-bold text-slate-400 mb-2">Fri</div>
+                    <div class="text-center text-xs font-bold text-slate-400 mb-2">Sat</div>
+
+                    <div
+                        class="aspect-video bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center text-slate-400 text-sm font-medium">
+                        1</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        2</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        3</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        4</div>
+                    <div
+                        class="aspect-video bg-amber-100 rounded-lg border border-amber-200 flex items-center justify-center text-amber-700 text-sm font-bold">
+                        5</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        6</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        7</div>
+
+                    <div
+                        class="aspect-video bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center text-slate-400 text-sm font-medium">
+                        8</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        9</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        10</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        11</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        12</div>
+                    <div
+                        class="aspect-video bg-rose-100 rounded-lg border border-rose-200 flex items-center justify-center text-rose-700 text-sm font-bold">
+                        13</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        14</div>
+
+                    <div
+                        class="aspect-video bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center text-slate-400 text-sm font-medium">
+                        15</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        16</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        17</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        18</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        19</div>
+                    <div
+                        class="aspect-video bg-rose-100 rounded-lg border border-rose-200 flex items-center justify-center text-rose-700 text-sm font-bold">
+                        20</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        21</div>
+
+                    <div
+                        class="aspect-video bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center text-slate-400 text-sm font-medium">
+                        22</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        23</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        24</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        25</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        26</div>
+                    <div
+                        class="aspect-video bg-rose-100 rounded-lg border border-rose-200 flex items-center justify-center text-rose-700 text-sm font-bold">
+                        27</div>
+                    <div
+                        class="aspect-video bg-emerald-100 rounded-lg border border-emerald-200 flex items-center justify-center text-emerald-700 text-sm font-bold">
+                        28</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="leave" class="section-container hidden mb-8 space-y-6 animate-fade-in">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold text-slate-800">Apply Leave</h3>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-6">
+                <!-- Leave Type -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Leave
+                        Type</label>
+                    <select id="leaveType"
+                        class="w-full md:w-1/3 px-4 py-3 border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent outline-none bg-slate-50/50">
+                        <option value="casual">Casual Leave</option>
+                        <option value="sick">Sick Leave</option>
+                        <option value="half">Half Day Leave</option>
+                    </select>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <!-- Date Selection -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Date
+                        Selection</label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">From</span>
+                            <input id="leaveFrom" type="date"
+                                class="pl-14 pr-4 py-3 border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent outline-none w-full bg-slate-50/50" />
+                        </div>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">To</span>
+                            <input id="leaveTo" type="date"
+                                class="pl-10 pr-4 py-3 border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent outline-none w-full bg-slate-50/50" />
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <!-- Time (Only for Half Day) -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Time <span
+                            class="text-slate-400 normal-case tracking-normal font-medium ml-1">(Only for Half
+                            Day)</span></label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">From</span>
+                            <input id="leaveStartTime" type="time"
+                                class="pl-14 pr-4 py-3 border border-slate-200 rounded-lg text-sm font-medium disabled:opacity-50 disabled:bg-slate-100 focus:ring-2 focus:ring-accent outline-none w-full bg-slate-50/50" />
+                        </div>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">To</span>
+                            <input id="leaveEndTime" type="time"
+                                class="pl-10 pr-4 py-3 border border-slate-200 rounded-lg text-sm font-medium disabled:opacity-50 disabled:bg-slate-100 focus:ring-2 focus:ring-accent outline-none w-full bg-slate-50/50" />
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <!-- Reason -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Reason</label>
+                    <textarea id="leaveReason"
+                        class="w-full px-4 py-3 border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-accent outline-none bg-slate-50/50 placeholder:text-slate-400"
+                        rows="3" placeholder="Required..."></textarea>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <!-- Attachment -->
+                <div>
+                    <label
+                        class="block text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Attachment</label>
+                    <div
+                        class="border-2 border-dashed border-slate-200 rounded-lg p-6 text-center hover:bg-slate-50 transition cursor-pointer bg-slate-50/30">
+                        <input type="file" id="leaveAttachment" class="hidden" />
+                        <label for="leaveAttachment"
+                            class="cursor-pointer text-sm font-bold text-slate-600 flex flex-col items-center justify-center gap-2">
+                            <span class="text-2xl text-slate-400"><i class="fa-solid fa-file-waveform"></i></span>
+                            Upload Medical Proof (Optional)
+                        </label>
+                    </div>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <!-- Leave Preview -->
+                <div
+                    class="bg-indigo-50/50 p-4 rounded-lg flex items-center justify-between border border-indigo-100/50">
+                    <span class="text-sm font-bold text-indigo-800 uppercase tracking-wider">Leave Preview</span>
+                    <span class="text-sm font-black text-indigo-900">Total Leave Count: <span id="leaveCountPreview"
+                            class="text-indigo-600 font-mono text-base ml-1 mr-1">0</span> days</span>
+                </div>
+
+                <div id="leaveMsg" class="text-sm text-center mb-0 mt-0 empty:hidden"></div>
+
+                <!-- Actions -->
+                <div class="flex gap-4 pt-2 border-t border-slate-100 sm:pt-6">
+                    <button
+                        class="px-8 py-3 bg-slate-800 text-white text-sm font-bold rounded-lg hover:bg-slate-700 transition shadow-sm"
+                        onclick="applyLeave()">Submit</button>
+                    <button
+                        class="px-8 py-3 bg-white border border-slate-200 text-slate-600 text-sm font-bold rounded-lg hover:bg-slate-50 transition shadow-sm"
+                        onclick="document.getElementById('leaveFrom').value='';document.getElementById('leaveTo').value='';document.getElementById('leaveStartTime').value='';document.getElementById('leaveEndTime').value='';document.getElementById('leaveReason').value='';document.getElementById('leaveCountPreview').innerText='0';">Reset</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="my-leaves" class="section-container hidden mb-6 animate-fade-in">
+            <h3 class="text-lg font-semibold mb-3">My Leave Requests</h3>
+            <div class="bg-white p-4 rounded-lg shadow-sm">
+                <div class="overflow-auto">
+                    <table id="leaveTable" class="min-w-full text-sm">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="p-3">From</th>
+                                <th class="p-3">To</th>
+                                <th class="p-3">Time</th>
+                                <th class="p-3">Reason</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3">Rejected Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="settings" class="section-container hidden mb-6 animate-fade-in">
+            <h3 class="text-xl font-bold text-slate-800 mb-6">Settings</h3>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-8 max-w-4xl mx-auto">
+                <div>
+                    <h3 class="text-lg font-bold text-rose-500 mb-5 flex items-center gap-2"><span
+                            class="bg-rose-50 p-1.5 rounded-md text-sm"><i
+                                class="fa-solid fa-right-from-bracket"></i></span> Account Actions</h3>
+                    <div
+                        class="p-5 rounded-xl border border-rose-100 bg-rose-50/30 flex justify-between items-center sm:flex-row flex-col gap-4 text-center sm:text-left">
+                        <div>
+                            <h4 class="font-bold text-slate-800">Secure Logout</h4>
+                            <p class="text-sm text-slate-500">End your current session safely.</p>
+                        </div>
+                        <a href="/logout"
+                            class="bg-rose-500 hover:bg-rose-600 text-white font-bold py-2.5 px-6 rounded-xl shadow-sm transition flex items-center gap-2 min-w-max">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                        </a>
+                    </div>
+        </section>
+
+        <!-- QR Scan Section -->
+        <section id="qr-scan" class="section-container hidden mb-6 animate-fade-in">
+            <h3 class="text-xl font-bold text-slate-800 mb-6">QR Attendance Scanner</h3>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 max-w-2xl mx-auto text-center">
+                <div class="mb-6 text-center">
+                    <p class="text-slate-600 mb-4 mx-auto max-w-md">Position the QR code generated by the admin within
+                        the camera frame to mark your attendance.</p>
+                    <div id="reader-container"
+                        class="mx-auto rounded-xl overflow-hidden border-2 border-slate-200 bg-slate-50 flex items-center justify-center relative"
+                        style="width: 100%; max-width: 400px; min-height: 300px;">
+                        <div id="reader" style="width: 100%;"></div>
+                        <div id="scanner-line"
+                            class="hidden absolute top-0 left-0 w-full h-1 bg-accent/50 shadow-[0_0_10px_#14b8a6] animate-bounce-slow z-10">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="scan-feedback" class="hidden p-4 rounded-lg mb-4 text-sm font-medium"></div>
+
+                <div class="flex flex-col gap-4 items-center">
+                    <button id="startScanBtn" onclick="startScanner()"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-xl shadow-md transition flex items-center gap-2">
+                        <i class="fa-solid fa-camera"></i> Start Scanner
+                    </button>
+                    <button id="stopScanBtn" onclick="stopScanner()"
+                        class="hidden bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-8 rounded-xl shadow-md transition flex items-center gap-2">
+                        <i class="fa-solid fa-stop"></i> Stop Scanner
+                    </button>
+                    <div id="loadingScanner" class="hidden text-slate-500 text-sm italic">
+                        <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Initializing camera...
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-slate-100">
+                    <h4 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Recent QR Scans</h4>
+                    <div id="qrHistory" class="text-sm text-slate-500 italic">No QR scans attempted in this session
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/js/ui.js"></script>
+    <script>
+        function showSection(sectionId) {
+            document.querySelectorAll('.section-container').forEach(sec => sec.classList.add('hidden'));
+            document.querySelectorAll('.nav-link').forEach(nav => {
+                nav.classList.remove('bg-slate-100', 'text-slate-700');
+                nav.classList.add('text-slate-600');
+            });
+            const selectedSection = document.getElementById(sectionId);
+            if (selectedSection) {
+                selectedSection.classList.remove('hidden');
+            }
+            const activeNav = document.querySelector(`a[href="#${sectionId}"]`);
+            if (activeNav) {
+                activeNav.classList.remove('text-slate-600');
+                activeNav.classList.add('bg-slate-100', 'text-slate-700');
+            }
+        }
+
+        let monthlyChart = null;
+
+        function renderLeaveStatus(status) {
+            if (status === 'APPROVED') return "<span class='px-2 py-1 rounded-full text-xs bg-green-100 text-green-700'>Accepted</span>";
+            if (status === 'REJECTED') return "<span class='px-2 py-1 rounded-full text-xs bg-rose-100 text-rose-700'>Rejected</span>";
+            return "<span class='px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-700'>Pending</span>";
+        }
+
+        function loadStats() {
+            fetch('/api/faculty/stats')
+                .then(r => { if (!r.ok) throw new Error('Failed stats'); return r.json(); })
+                .then(s => {
+                    document.getElementById('totalWorking').innerText = s.workingDays ?? 0;
+                    document.getElementById('presentDays').innerText = s.presentDays ?? 0;
+                    document.getElementById('leaveCount').innerText = Number(s.approvedLeaves ?? 0).toFixed(1);
+
+                    const fName = s.facultyName || 'Faculty';
+                    const nameEl = document.getElementById('welcomeName');
+                    if (nameEl) nameEl.innerText = fName;
+
+                    const initEl = document.getElementById('welcomeInitial');
+                    if (initEl) initEl.innerText = fName.charAt(0).toUpperCase();
+
+                    const pName = document.getElementById('profileName');
+                    if (pName) pName.innerText = ': ' + fName;
+
+                    const pDept = document.getElementById('profileDept');
+                    if (pDept) pDept.innerText = ': ' + (s.facultyDepartment || 'N/A');
+
+                    const pEmail = document.getElementById('profileEmail');
+                    if (pEmail) pEmail.innerText = ': ' + (s.facultyEmail || 'N/A');
+
+                    const pId = document.getElementById('profileId');
+                    if (pId) pId.innerText = ': ' + (s.facultyRollNo || 'N/A');
+                })
+                .catch(() => { showToast('Could not load stats', 'error'); });
+        }
+
+        function loadMonthly() {
+            const y = document.getElementById('monthYear').value;
+            const m = document.getElementById('monthMonth').value;
+            if (!y || !m) return;
+            fetch(`/api/faculty/attendance/monthly?year=${y}&month=${m}`)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('percentage').innerText = `Attendance: ${(data.percentage || 0).toFixed(2)}%`;
+                    const labels = data.records.map(r => r.date);
+                    const values = data.records.map(r => r.status === 'PRESENT' ? 1 : 0);
+                    if (monthlyChart) monthlyChart.destroy();
+                    const ctx = document.getElementById('monthlyChart').getContext('2d');
+                    let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                    gradient.addColorStop(0, 'rgba(20, 184, 166, 0.7)');
+                    gradient.addColorStop(1, 'rgba(20, 184, 166, 0.05)');
+
+                    monthlyChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels,
+                            datasets: [{
+                                label: 'Attendance Value',
+                                data: values,
+                                backgroundColor: gradient,
+                                borderColor: '#14b8a6', // Teal
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: '#ffffff',
+                                pointBorderColor: '#14b8a6',
+                                pointBorderWidth: 2,
+                                pointRadius: 4,
+                                pointHoverRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: '#172554',
+                                    titleFont: { size: 13, family: 'Inter' },
+                                    bodyFont: { size: 12, family: 'Inter' },
+                                    padding: 12,
+                                    cornerRadius: 8,
+                                    displayColors: false,
+                                    callbacks: {
+                                        label: function (context) { return context.parsed.y === 1 ? ' Status: Present' : ' Status: Absent/Leave'; }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 1.2,
+                                    ticks: {
+                                        stepSize: 1,
+                                        color: '#94a3b8',
+                                        callback: function (value) {
+                                            if (value === 0) return 'Absent';
+                                            if (value === 1) return 'Present';
+                                            return '';
+                                        }
+                                    },
+                                    grid: { color: '#f1f5f9', drawBorder: false, borderDash: [5, 5] },
+                                    border: { display: false }
+                                },
+                                x: {
+                                    ticks: { color: '#94a3b8' },
+                                    grid: { display: false },
+                                    border: { display: false }
+                                }
+                            }
+                        }
+                    });
+                });
+        }
+
+        function applyLeave() {
+            const from = document.getElementById('leaveFrom').value;
+            const to = document.getElementById('leaveTo').value;
+            const reason = document.getElementById('leaveReason').value;
+            const startTime = document.getElementById('leaveStartTime').value;
+            const endTime = document.getElementById('leaveEndTime').value;
+
+            if (!from || !to || !reason) {
+                showToast('Please fill all required fields', 'error');
+                return;
+            }
+            if (new Date(to) < new Date(from)) {
+                showToast('To date cannot be before From date', 'error');
+                return;
+            }
+            if ((startTime && !endTime) || (!startTime && endTime)) {
+                showToast('Select both start and end time for half-day leave', 'error');
+                return;
+            }
+
+            const params = new URLSearchParams();
+            params.append('from', from);
+            params.append('to', to);
+            params.append('reason', reason);
+            if (startTime && endTime) {
+                params.append('startTime', startTime);
+                params.append('endTime', endTime);
+            }
+
+            fetch('/api/faculty/leave', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
+            })
+                .then(r => { if (!r.ok) throw new Error('Apply failed'); return r.json(); })
+                .then(() => {
+                    showToast('Submitted successfully', 'success');
+                    loadLeaves();
+                    loadStats();
+                })
+                .catch(() => { showToast('Could not apply leave', 'error'); });
+        }
+
+        function loadLeaves() {
+            fetch('/api/faculty/leave')
+                .then(r => r.json())
+                .then(data => {
+                    const tbody = document.querySelector('#leaveTable tbody');
+                    tbody.innerHTML = '';
+                    data.forEach(l => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-slate-50';
+                        const timeText = l.startTime && l.endTime ? `${l.startTime} - ${l.endTime}` : 'Full day';
+                        tr.innerHTML = `<td class='p-3'>${l.fromDate}</td><td class='p-3'>${l.toDate}</td><td class='p-3'>${timeText}</td><td class='p-3'>${escapeHtml(l.reason || '')}</td><td class='p-3'>${renderLeaveStatus(l.status)}</td><td class='p-3 text-rose-700'>${escapeHtml(l.rejectionReason || '-')}</td>`;
+                        tbody.appendChild(tr);
+                    });
+                });
+        }
+
+        function loadTodayAttendance() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            const dayStr = now.toLocaleDateString('en-GB', { weekday: 'long' });
+            document.querySelectorAll('#todayDate, #dailyDateSpan').forEach(el => el && (el.innerText = dateStr));
+            const dayEl = document.getElementById('dailyDaySpan');
+            if (dayEl) dayEl.innerText = dayStr;
+
+            fetch('/api/faculty/attendance/today')
+                .then(r => r.json())
+                .then(data => {
+                    const statusEls = [document.getElementById('todayStatus'), document.getElementById('dailyStatus')];
+                    const checkInEls = [document.getElementById('todayCheckIn'), document.getElementById('dailyCheckIn')];
+                    const checkOutEls = [document.getElementById('todayCheckOut'), document.getElementById('dailyCheckOut')];
+                    const checkInBtn = document.getElementById('checkInBtn');
+                    const checkOutBtn = document.getElementById('checkOutBtn');
+
+                    if (data && data.status) {
+                        // Status styling
+                        let statusHtml = '';
+                        let statusClass = '';
+                        if (data.status === 'PRESENT') {
+                            statusHtml = `<span class="text-emerald-700 tracking-wide text-xs">PRESENT</span><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>`;
+                            statusClass = "flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 uppercase";
+                        } else if (data.status === 'HALF_FN') {
+                            statusHtml = `<span class="text-indigo-700 tracking-wide text-xs">HALF DAY (FN)</span><span class="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></span>`;
+                            statusClass = "flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100 uppercase";
+                        } else if (data.status === 'HALF_AN') {
+                            statusHtml = `<span class="text-indigo-700 tracking-wide text-xs">HALF DAY (AN)</span><span class="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></span>`;
+                            statusClass = "flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100 uppercase";
+                        } else if (data.status === 'LEAVE') {
+                            statusHtml = `<span class="text-amber-700 tracking-wide text-xs">LEAVE</span><span class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></span>`;
+                            statusClass = "flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-100 uppercase";
+                        } else if (data.status === 'ABSENT') {
+                            statusHtml = `<span class="text-rose-700 tracking-wide text-xs">ABSENT</span><span class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]"></span>`;
+                            statusClass = "flex items-center gap-2 bg-rose-50 px-3 py-1.5 rounded-full border border-rose-100 uppercase";
+                        }
+
+                        statusEls.forEach(el => {
+                            if (el) {
+                                el.innerHTML = statusHtml;
+                                el.className = statusClass;
+                            }
+                        });
+
+                        // Times
+                        const timelineEl = document.getElementById('attendanceTimeline');
+                        if (timelineEl) timelineEl.innerHTML = '';
+
+                        if (data.loginTime) {
+                            const time = new Date(data.loginTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            checkInEls.forEach(el => {
+                                if (el) {
+                                    el.innerText = time;
+                                    el.classList.remove('text-slate-400');
+                                    el.classList.add('text-slate-800');
+                                }
+                            });
+                            if (checkInBtn) checkInBtn.disabled = true;
+
+                            if (timelineEl) {
+                                timelineEl.innerHTML += `
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-indigo-600"></div>
+                                        <div class="text-sm font-bold text-slate-800 font-mono">${time} <span class="mx-2 text-slate-400 font-sans">&rarr;</span> <span class="font-sans">Checked in</span></div>
+                                    </div>`;
+                            }
+                        }
+                        if (data.logoutTime) {
+                            const time = new Date(data.logoutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            checkOutEls.forEach(el => {
+                                if (el) {
+                                    el.innerText = time;
+                                    el.classList.remove('text-slate-400');
+                                    el.classList.add('text-slate-800');
+                                }
+                            });
+                            if (checkOutBtn) checkOutBtn.disabled = true;
+
+                            if (timelineEl) {
+                                timelineEl.innerHTML += `
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-slate-800"></div>
+                                        <div class="text-sm font-bold text-slate-800 font-mono">${time} <span class="mx-2 text-slate-400 font-sans">&rarr;</span> <span class="font-sans">Checked out</span></div>
+                                    </div>`;
+                            }
+                        }
+                    } else {
+                        // Default NOT MARKED
+                        const timelineEl = document.getElementById('attendanceTimeline');
+                        if (timelineEl) timelineEl.innerHTML = '<div class="text-sm text-slate-400 italic">No activity recorded for today</div>';
+                        const defaultHtml = `<span class="text-slate-500 tracking-wide font-black text-xs">NOT MARKED</span><span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>`;
+                        const defaultClass = "flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 uppercase";
+
+                        statusEls.forEach(el => {
+                            if (el) {
+                                el.innerHTML = defaultHtml;
+                                el.className = defaultClass;
+                            }
+                        });
+
+                        checkInEls.forEach(el => el && (el.innerText = "--:--"));
+                        checkOutEls.forEach(el => el && (el.innerText = "--:--"));
+                    }
+                })
+                .catch(err => console.error('Error loading today attendance:', err));
+        }
+
+        function markAttendance() {
+            fetch('/api/faculty/attendance/mark', { method: 'POST' })
+                .then(r => {
+                    if (!r.ok) return r.text().then(t => { throw new Error(t || 'Failed to mark'); });
+                    return r.json();
+                })
+                .then(data => {
+                    showToast('Attendance updated successfully', 'success');
+                    loadTodayAttendance();
+                    loadStats();
+                })
+                .catch(err => {
+                    showToast(err.message || 'Action not allowed at this time', 'error');
+                });
+        }
+
+        let html5QrScanner = null;
+
+        function startScanner() {
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+            document.getElementById('startScanBtn').classList.add('hidden');
+            document.getElementById('loadingScanner').classList.remove('hidden');
+
+            if (html5QrScanner) {
+                html5QrScanner.clear();
+            }
+
+            html5QrScanner = new Html5Qrcode("reader");
+
+            html5QrScanner.start(
+                { facingMode: "environment" },
+                config,
+                onScanSuccess,
+                onScanFailure
+            ).then(() => {
+                document.getElementById('loadingScanner').classList.add('hidden');
+                document.getElementById('stopScanBtn').classList.remove('hidden');
+                document.getElementById('scanner-line').classList.remove('hidden');
+                showToast('Camera started', 'success');
+            }).catch(err => {
+                console.error("Scanner Error", err);
+                document.getElementById('startScanBtn').classList.remove('hidden');
+                document.getElementById('loadingScanner').classList.add('hidden');
+                showToast('Camera access failed', 'error');
+            });
+        }
+
+        function stopScanner() {
+            if (html5QrScanner) {
+                html5QrScanner.stop().then(() => {
+                    html5QrScanner.clear();
+                    document.getElementById('stopScanBtn').classList.add('hidden');
+                    document.getElementById('startScanBtn').classList.remove('hidden');
+                    document.getElementById('scanner-line').classList.add('hidden');
+                    document.getElementById('scan-feedback').classList.add('hidden');
+                }).catch(err => console.error(err));
+            }
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log(`Scan result: ${decodedText}`, decodedResult);
+
+            // Visual feedback
+            const feedback = document.getElementById('scan-feedback');
+            feedback.innerText = "QR Code Detected! Verifying...";
+            feedback.className = "p-4 rounded-lg mb-4 text-sm font-medium bg-amber-50 text-amber-700 border border-amber-100 block";
+
+            // Stop scanning to process
+            stopScanner();
+
+            // Try to parse if it's JSON
+            try {
+                const data = JSON.parse(decodedText);
+                if (data.type === 'ATTENDANCE_CHECKIN' && data.token) {
+                    verifyQRToken(data.token, data.date, data.status);
+                } else {
+                    throw new Error("Invalid attendance QR format");
+                }
+            } catch (e) {
+                // If not JSON, try sending raw if it matches our pattern
+                if (decodedText.startsWith('ATT_SESSIONS_')) {
+                    verifyQRToken(decodedText);
+                } else {
+                    feedback.innerText = "Invalid QR Code format. Please scan the admin's QR.";
+                    feedback.className = "p-4 rounded-lg mb-4 text-sm font-medium bg-rose-50 text-rose-700 border border-rose-100 block";
+                    setTimeout(() => {
+                        document.getElementById('startScanBtn').classList.remove('hidden');
+                    }, 2000);
+                }
+            }
+        }
+
+        function onScanFailure(error) {
+            // Usually too noisy to show, just log
+            // console.warn(`Code scan error = ${error}`);
+        }
+
+        function verifyQRToken(token, qrDate, status) {
+            const feedback = document.getElementById('scan-feedback');
+
+            fetch('/api/faculty/attendance/verify-qr', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `token=${encodeURIComponent(token)}${qrDate ? '&date=' + qrDate : ''}${status ? '&status=' + status : ''}`
+            })
+                .then(r => {
+                    if (!r.ok) return r.text().then(t => { throw new Error(t || 'Verification failed'); });
+                    return r.json();
+                })
+                .then(data => {
+                    feedback.innerText = "Success! Attendance marked via QR.";
+                    feedback.className = "p-4 rounded-lg mb-4 text-sm font-medium bg-emerald-50 text-emerald-700 border border-emerald-100 block";
+                    showToast('Attendance marked successfully', 'success');
+                    loadTodayAttendance();
+                    loadStats();
+                    updateQRHistory(token, 'Success');
+                })
+                .catch(err => {
+                    feedback.innerText = "Failed: " + err.message;
+                    feedback.className = "p-4 rounded-lg mb-4 text-sm font-medium bg-rose-50 text-rose-700 border border-rose-100 block";
+                    showToast(err.message, 'error');
+                    updateQRHistory(token, 'Failed: ' + err.message);
+                    document.getElementById('startScanBtn').classList.remove('hidden');
+                });
+        }
+
+        function updateQRHistory(token, status) {
+            const history = document.getElementById('qrHistory');
+            const time = new Date().toLocaleTimeString();
+            const entry = `<div class="flex justify-between border-b border-slate-50 py-2">
+                <span>${time}</span>
+                <span class="${status === 'Success' ? 'text-emerald-600' : 'text-rose-600'} font-bold">${status}</span>
+            </div>`;
+
+            if (history.innerText.includes('No QR scans')) {
+                history.innerHTML = entry;
+            } else {
+                history.innerHTML = entry + history.innerHTML;
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        loadLeaves();
+        loadStats();
+        loadTodayAttendance();
+    </script>
+</body>
+
+</html>
