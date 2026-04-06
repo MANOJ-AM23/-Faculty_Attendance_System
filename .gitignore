@@ -5,7 +5,15 @@ yarn-error.log
 
 # Java/Maven
 target/
+backend/target/
 *.class
+*.jar
+*.war
+
+# Local tool downloads
+corretto/
+apache-maven/
+*.zip
 
 # IDEs
 .vscode/
